@@ -29,6 +29,7 @@ ________________
 
 _________
 ## Possible problems
-* foldr and foldl1 in coq?
+* step is not a fixpoint decreasing on one of its arguments, in combination with foldr it is however terminating. how to convince coq?
+* there is no fold1, since it is an partial function. is this a problem for us?
 * how to deal with 'end of list' (NIL), which can be interpreted as an item of the maximum height
 * the main problem: how to prove that using join on lmps as arguments to a recursive call on step maintains the invariant (that step creates a strictly increasing list)
