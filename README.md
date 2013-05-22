@@ -35,10 +35,11 @@ From these facts we should be able to conclude that every sequence has an lmp
    an strictly increasing list.
      * For this we need to prove that using join in the definition of step is safe. Needs:
        - Proof that in any sequence xs ++ [a,b]:
-         ![ageb](http://latex.codecogs.com/svg.latex?a%20%5Cgeq%20b) implies that (a,b) is an lmp (easy).
+         ![ageb](http://latex.codecogs.com/svg.latex?a%20%5Cgeq%20b) implies that (a,b) is an lmp.
        - Proof that in any sequence xs ++ [t, u, v] ++ ts:
          ![vgttgequ](http://latex.codecogs.com/svg.latex?v%20%3E%20t%20%5Cgeq%20u)
-         implies that (t, u) is an lmp (easy).
+         implies that (t, u) is an lmp.
+       - Proof that in any sequence xs ++ [t, u, v] ++ ts: v <= t >= u => (u, v) is an lmp 
 
 From the above follows that foldl1 join creates a tree of minimum height.
 
