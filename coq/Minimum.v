@@ -23,8 +23,7 @@ Definition ht (t : tree) :=
     end.
 
 
-(* TODO: should increment height *)
-Definition join (x y : tree) := Bin (max (ht x) (ht y)) x y.
+Definition join (x y : tree) := Bin (max (ht x) (ht y) + 1) x y.
 
 Fixpoint step (t : tree) (xs : list tree) :=
     match xs with
