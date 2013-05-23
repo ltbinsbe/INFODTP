@@ -13,7 +13,8 @@ TODO
   ![bounds](http://latex.codecogs.com/svg.latex?h_%7Bi%7D%20%3A%20%281%20%5Cleq%20i%20%5Cleq%20N%29)
 * **Then** there is a tree T of **minimum height** in which
   ![pair](http://latex.codecogs.com/svg.latex?%28t_%7Bi%7D%2C%20t_%7Bi&plus;1%7D%29) are siblings
-
+    a. Given list [..,x, a, b, y, ..] a => b ^ y > a  -> (a, b) lmp
+    b. Given list [..,x, a, b, y, ..] a < b  ^ b < y ^ x >= a -> (a, b) lmp
 ### Prove auxiliary facts about lmp (local minimum pair):
 
 1. Proof that in an strictly increasing list, the leftmost pair is always an lmp.
@@ -36,10 +37,14 @@ From these facts we should be able to conclude that every sequence has an lmp
      * For this we need to prove that using join in the definition of step is safe. Needs:
        - Proof that in any sequence xs ++ [a,b]:
          ![ageb](http://latex.codecogs.com/svg.latex?a%20%5Cgeq%20b) implies that (a,b) is an lmp.
+         (follows from 1.a)
        - Proof that in any sequence xs ++ [t, u, v] ++ ts:
          ![vgttgequ](http://latex.codecogs.com/svg.latex?v%20%3E%20t%20%5Cgeq%20u)
          implies that (t, u) is an lmp.
-       - Proof that in any sequence xs ++ [t, u, v] ++ ts: v <= t >= u => (u, v) is an lmp 
+         (follows from 1.a)
+       - Proof that in any sequence 
+            xs ++ [t, u, v] ++ ts: [u,v] ++ ts is increasing & t >= v ^ t >= u => (u, v) is an lmp 
+         (follows from 1.b)
 
 From the above follows that foldl1 join creates a tree of minimum height.
 
