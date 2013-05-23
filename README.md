@@ -6,17 +6,15 @@ Verification of the algorithm described in "On building trees of minimum height"
 TODO
 ----
 
-### Prove Lemma 1:
-
+### Prove Lemma 1 (join builds minimum height from combining lmps):
 * **Given that** ![pair](http://latex.codecogs.com/svg.latex?%28t_%7Bi%7D%2C%20t_%7Bi&plus;1%7D%29)
   is a lmp (local minimum pair) in a sequence of trees
   ![bounds](http://latex.codecogs.com/svg.latex?h_%7Bi%7D%20%3A%20%281%20%5Cleq%20i%20%5Cleq%20N%29)
 * **Then** there is a tree T of **minimum height** in which
   ![pair](http://latex.codecogs.com/svg.latex?%28t_%7Bi%7D%2C%20t_%7Bi&plus;1%7D%29) are siblings
-    a. Given list [..,x, a, b, y, ..] a => b ^ y > a  -> (a, b) lmp
-    b. Given list [..,x, a, b, y, ..] a < b  ^ b < y ^ x >= a -> (a, b) lmp
-### Prove auxiliary facts about lmp (local minimum pair):
 
+
+### Prove auxiliary facts about lmp (local minimum pair):
 1. Proof that in an strictly increasing list, the leftmost pair is always an lmp.
 2. Proof that in a non-strictly decreasing list, the rightmost pair is always an lmp.
 3. Proof that in a list that is not non-strictly decreasing there is always a pair (a, b)
@@ -26,8 +24,14 @@ TODO
 From these facts we should be able to conclude that every sequence has an lmp
 (Thomas: I'm not sure whether we actually need this proof)
 
+
 ### Invariants about order on lists:
 
+#### Lemma 2, 3:
+2. Given list [..,x, a, b, y, ..] a >= b ^ y > a  -> (a, b) lmp
+3. Given list [..,x, a, b, y, ..] a < b  ^ b < y ^ x >= a -> (a, b) lmp
+
+#### Prove that step produces a strictly increasing list (sequence of lmps):
 1. Proof that ![FAa](http://latex.codecogs.com/svg.latex?%5Cforall%7Ba%7D) [a] is a
    strictly increasing list (trivial)
 2. Proof that ![FAaaltb](http://latex.codecogs.com/svg.latex?%5Cforall%7Ba%7D%20%3A%20a%20%3C%20b)
@@ -41,12 +45,12 @@ From these facts we should be able to conclude that every sequence has an lmp
        - Proof that in any sequence xs ++ [t, u, v] ++ ts:
          ![vgttgequ](http://latex.codecogs.com/svg.latex?v%20%3E%20t%20%5Cgeq%20u)
          implies that (t, u) is an lmp.
-         (follows from 1.a)
+         (follows from Lemma 2)
        - Proof that in any sequence 
             xs ++ [t, u, v] ++ ts: [u,v] ++ ts is increasing & t >= v ^ t >= u => (u, v) is an lmp 
-         (follows from 1.b)
+         (follows from Lemma 3)
 
-From the above follows that foldl1 join creates a tree of minimum height.
+From the above follows that foldl1 join creates a tree of minimum height. QED.
 
 
 Possible problems
