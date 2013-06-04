@@ -1,16 +1,16 @@
 
 Require Import Coq.Lists.List.
 Require Import Coq.Arith.Compare_dec.
+Require Import Arith.Wf_nat.
+Require Import Recdef.
 
 Open Scope nat_scope.
-
 
 Definition max (a b : nat) :=
     match nat_compare a b with
     | Lt => b
     | _  => a
     end.
-
 
 Inductive tree :=
     | Tip : tree
@@ -23,9 +23,9 @@ Definition ht (t : tree) :=
     end.
 
 
-Definition join (x y : tree) := Bin (max (ht x) (ht y) + 1) x y.
+Definition join (x y : tree) : tree := Bin (max (ht x) (ht y) + 1) x y.
 
-Fixpoint step (t : tree) (xs : list tree) :=
+Fixpoint step (t : tree) (xs : list tree) : list tree :=
     match xs with
     | nil      => t :: nil
     | u :: nil =>
@@ -38,12 +38,11 @@ Fixpoint step (t : tree) (xs : list tree) :=
         | Lt => t :: u :: v :: ts
         | _  =>
             match nat_compare (ht t) (ht v) with
-            | Lt => step (join t u) (v :: ts)  (* non-structural recursion? *)
-            | _  => step t (step (join u v) ts)  (* non-structural recursion *)
+            | Lt => step (join t u) (v :: ts)
+            | _  => step t (step (join u v) ts)
             end
         end
     end.
-
 
 (* TODO: problem: there is no fold1 is Coq (partial) *)
 Definition build (xs : list tree) := fold_left join (fold_right step nil xs).
