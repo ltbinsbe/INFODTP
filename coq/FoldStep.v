@@ -40,7 +40,7 @@ Fixpoint fold_step (input : list tree) (acc : list tree) : list tree :=
       match nat_compare (ht i) (ht u) with
       | Lt => fold_step is (i :: u :: v :: us)
       | _  => 
-        match nat_compare (ht u) (ht v) with
+        match nat_compare (ht i) (ht v) with
         | Lt => fold_step is (fold_step (join i u :: nil) (v :: us))
         | _  => fold_step is (fold_step (i :: nil) (fold_step (join u v :: nil) us))
         end
