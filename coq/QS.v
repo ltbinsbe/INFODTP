@@ -2,7 +2,7 @@ Require Import Coq.Lists.List.
 Require Import Coq.Numbers.Natural.Peano.NPeano.
 Require Import Coq.Bool.Bool.
 
-Open Scope List_Scope.
+Open Scope list_scope.
 
 
 Inductive QS : list nat -> Prop :=
