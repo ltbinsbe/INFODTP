@@ -4,20 +4,22 @@ Require Import Coq.Bool.Bool.
 
 Open Scope list_scope.
 
+Import ListNotations.
 
-Inductive QS : list nat -> Prop :=
-    | qs_nil  : QS nil
-    | qs_cons : forall (x : nat) (xs : list nat),
-                    QS (filter (fun y => ltb y x) xs) ->
-                    QS (filter (fun y => negb (ltb y x)) xs) ->
-                    QS (x :: xs).
+Inductive QSAcc : list nat -> Prop :=
+    | qsAcc_nil  : QSAcc nil
+    | qsAcc_cons : forall (x : nat) (xs : list nat),
+                    QSAcc (filter (fun y => ltb y x) xs) ->
+                    QSAcc (filter (fun y => negb (ltb y x)) xs) ->
+                    QSAcc (x :: xs).
 
 
-Fixpoint quicksort (qs_acc : QS) (l : list nat) : list nat :=
-    match qs_acc, l with
-    | qs_nil, _ => []
-    | (qs_cons lesser greater), x :: xs =>
-            quicksort lesser (filter (fun y => ltb y x) xs)
-            ++ [x]
-            ++ quicksort greater (filter (fun y => negb (ltb y x)) xs)
+Fixpoint quicksort (l : list nat) (qsAcc : QSAcc l) : list nat :=
+    match qsAcc, l with
+    | qsAcc_nil,      _           => []
+    | qsAcc_cons _ _ _ _, []      => []
+    | qsAcc_cons _ _ l g, x :: xs =>
+            quicksort (filter (fun y => ltb y x) xs) l ++ [x]
+            ++ quicksort (filter (fun y => negb (ltb y x)) xs) g
     end.
+
