@@ -46,9 +46,9 @@ Inductive lmp : tree -> tree -> list tree -> Set :=
   | lmp_threel : forall (a b x : tree), 
                    (ht a < ht b /\ ht x >= ht b) \/ ht b <= ht a 
                    -> lmp a b (x :: a :: b :: nil)
-  | lmp_threer : forall (a b y : tree), 
+  | lmp_threer : forall (a b y : tree) (l : list tree), 
                    (ht a < ht b /\ ht b < ht y) \/ ht b <= ht a /\ ht a < ht y
-                   -> lmp a b (a :: b :: y :: nil)
+                   -> lmp a b (a :: b :: y :: l)
   | lmp_left : forall (a b x y : tree) (l l1 l2 : list tree),
               (l = l1 ++ (x :: a :: b :: y :: l2)) ->
               ht b <= ht a -> 
@@ -73,8 +73,17 @@ Qed.
 Theorem s_inc_two_lmp : forall (a b : tree) (l1 l2 : list tree), 
   l1 = (a :: b :: l2) -> s_inc l1 -> lmp a b l1.
 Proof.
-  intros a b l1 l2 H1 Inc.
-Admitted.
+  intros a b l1 l2 Cons Inc. rewrite Cons. 
+  destruct l2 as [|y]. apply lmp_pair. 
+    (* step *) apply lmp_threer. left. 
+    (* using the fact that the list is strictly increasing on both cases *)
+      split; rewrite Cons in Inc; inversion Inc; inversion H0.
+        assumption.
+        inversion H4. assumption. inversion H6. assumption.
+Qed.
+
+Theorem Lemma1 : (l p s : list tree) (a b : tree) (sub : l = p ++ [a,b] ++ s),
+  lmp a b l -> exists (t : tree) -> flatten t = l /\ siblings t a b
 
 (* Implementation of the algorithm itself *)
 Definition join (x y : tree) : tree := Bin (max (ht x) (ht y) + 1) x y.
