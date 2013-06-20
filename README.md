@@ -1,5 +1,5 @@
-INFODTP
-=======
+Verification Challenge - Dependently-typed Programming
+======================================================
 
 Verification of the algorithm described in "On building trees of minimum height" by Richard S. Bird, using Coq
 
@@ -17,6 +17,7 @@ TODO
 ### Prove auxiliary facts about lmp (local minimum pair):
 1. Proof that in an strictly increasing list, the leftmost pair is always an lmp.
 2. Proof that in a non-strictly decreasing list, the rightmost pair is always an lmp.
+
 3. Proof that in a list that is not non-strictly decreasing there is always a pair (a, b)
    for which it holds that ![alessb](http://latex.codecogs.com/svg.latex?a%3Cb).
    This is a strictly increasing sequence.
