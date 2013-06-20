@@ -22,10 +22,25 @@ Definition ht (t : tree) :=
     | Bin n _ _ => n
     end.
 
-
 Definition join (x y : tree) : tree := Bin (max (ht x) (ht y) + 1) x y.
 
-Inductive Step_acc : list tree -> Prop :=
+Inductive s_inc : (list tree) -> Prop :=
+  | s_inc_nil  : s_inc nil
+  | s_inc_sin  : forall (x : tree), s_inc (x :: nil)
+  | s_inc_two  : forall (x y : tree), ht x < ht y -> s_inc (x :: y :: nil)
+  | s_inc_cons : forall (x y : tree) (ys : list tree), ht x < ht y /\ s_inc (y :: ys) -> s_inc (x :: y :: ys).
+
+Example first : s_inc ((Bin 1 Tip Tip)::(Bin 2 Tip Tip)::nil).
+Proof.
+  apply s_inc_two with (x := Bin 1 Tip Tip) (y := Bin 2 Tip Tip). intuition.
+Qed.
+
+Example sec : s_inc ((Bin 1 Tip Tip)::(Bin 2 Tip Tip)::(Bin 3 Tip Tip)::(Bin 4 Tip Tip)::nil).
+Proof.
+  apply s_inc_cons. simpl. split; [|apply s_inc_cons; simpl; intuition; apply s_inc_two]; intuition.
+Qed.
+
+Inductive Step_acc : list tree -> Set :=
   | step_nil  : Step_acc nil
   | step_sin  : forall (u : tree),  Step_acc (u :: nil)
   | step_mul  : forall (u v : tree) (ts : list tree) (pts : Step_acc ts),
