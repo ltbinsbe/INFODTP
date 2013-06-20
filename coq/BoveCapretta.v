@@ -1,4 +1,5 @@
 
+Require Import Coq.Strings.String.
 Require Import Coq.Lists.List.
 Require Import Coq.Arith.Compare_dec.
 Require Import Arith.Wf_nat.
@@ -16,31 +17,52 @@ Definition max (a b : nat) :=
     end.
 
 Inductive tree :=
-    | Tip : tree
-    | Bin : nat -> tree -> tree -> tree.
+    | Tip : nat (* height of the tree it represents *)
+            -> tree
+    | Bin : nat -> (* height *)
+            tree -> (* left child *)
+            tree ->  (* right child *)
+            tree.
+
+(* functions on trees *)
 
 Definition ht (t : tree) :=
     match t with
-    | Tip       => 0
+    | Tip n     => n
     | Bin n _ _ => n
     end.
+
+Definition join (x y : tree) : tree := 
+  Bin (max (ht x) (ht y) + 1) x y.
+
+Fixpoint flatten (t : tree) : list tree :=
+  match t with
+  | Tip n       => Tip n :: nil
+  | Bin n t1 t2 => flatten t1 ++ flatten t2
+  end.
+
+Fixpoint siblings (t : tree) (a b : tree) : Prop :=
+  match t with 
+  | Tip _     => False
+  | Bin _ x y => a = x /\ b = y \/ siblings x a b \/ siblings y a b
+  end.
 
 Inductive s_inc : (list tree) -> Prop :=
   | s_inc_nil  : s_inc nil
   | s_inc_sin  : forall (x : tree), s_inc (x :: nil)
   | s_inc_two  : forall (x y : tree), ht x < ht y -> s_inc (x :: y :: nil)
   | s_inc_cons : forall (x y : tree) (ys : list tree), ht x < ht y /\ s_inc (y :: ys) -> s_inc (x :: y :: ys).
-
-Example first : s_inc ((Bin 1 Tip Tip)::(Bin 2 Tip Tip)::nil).
+(*
+Example first : s_inc ((Bin 1)::(Bin 2)::nil).
 Proof.
-  apply s_inc_two with (x := Bin 1 Tip Tip) (y := Bin 2 Tip Tip). intuition.
+  apply s_inc_two with (x := Bin 1) (y := Bin 2). intuition.
 Qed.
 
-Example sec : s_inc ((Bin 1 Tip Tip)::(Bin 2 Tip Tip)::(Bin 3 Tip Tip)::(Bin 4 Tip Tip)::nil).
+Example sec : s_inc ((Bin 1)::(Bin 2)::(Bin 3)::(Bin 4)::nil).
 Proof.
   apply s_inc_cons. simpl. split; [|apply s_inc_cons; simpl; intuition; apply s_inc_two]; intuition.
 Qed.
-
+*)
 Inductive lmp : tree -> tree -> list tree -> Set :=
   | lmp_pair : forall (a b : tree), lmp a b (a :: b :: nil)
   | lmp_threel : forall (a b x : tree), 
@@ -60,16 +82,16 @@ Inductive lmp : tree -> tree -> list tree -> Set :=
               ht b < ht y ->
               ht x >= ht b -> 
               lmp a b l.
-
-Example lmp_first : lmp (Bin 2 Tip Tip) (Bin 3 Tip Tip) (Bin 4 Tip Tip :: Bin 2 Tip Tip :: Bin 3 Tip Tip :: Bin 5 Tip Tip :: nil).
+(*
+Example lmp_first : lmp (Bin 2) (Bin 3) (Bin 4 :: Bin 2 :: Bin 3 :: Bin 5 :: nil).
 Proof.
-  apply lmp_right with (x := Bin 4 Tip Tip) (y := Bin 5 Tip Tip) (l1 := nil) (l2 := nil).
+  apply lmp_right with (x := Bin 4) (y := Bin 5) (l1 := nil) (l2 := nil).
     reflexivity. 
     intuition.
     intuition.
     intuition.
 Qed.
-
+*)
 Theorem s_inc_two_lmp : forall (a b : tree) (l1 l2 : list tree), 
   l1 = (a :: b :: l2) -> s_inc l1 -> lmp a b l1.
 Proof.
@@ -82,11 +104,17 @@ Proof.
         inversion H4. assumption. inversion H6. assumption.
 Qed.
 
-Theorem Lemma1 : (l p s : list tree) (a b : tree) (sub : l = p ++ [a,b] ++ s),
-  lmp a b l -> exists (t : tree) -> flatten t = l /\ siblings t a b
+Definition minimum (l : list tree) (t : tree) : Prop :=
+  forall (t' : tree), flatten t' = l -> ht t <= ht t'.
+
+Theorem Lemma1 : forall (l p s : list tree) (a b : tree) (sub : l = p ++ [a;b] ++ s),
+  lmp a b l -> exists (t : tree), siblings t a b -> minimum l t.
+Proof.
+Admitted.
+
+elem t (min (alltrees l)).
 
 (* Implementation of the algorithm itself *)
-Definition join (x y : tree) : tree := Bin (max (ht x) (ht y) + 1) x y.
 
 Inductive Step_acc : list tree -> Set :=
   | step_nil  : Step_acc nil
