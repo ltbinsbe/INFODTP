@@ -1,10 +1,10 @@
-
 Require Import Coq.Lists.List.
 Require Import Coq.Arith.Compare_dec.
 Require Import Arith.Wf_nat.
 Require Import Recdef.
 
 Open Scope nat_scope.
+
 
 Definition max (a b : nat) :=
     match nat_compare a b with
@@ -44,6 +44,6 @@ Fixpoint step (t : tree) (xs : list tree) : list tree :=
         end
     end.
 
-(* TODO: problem: there is no fold1 is Coq (partial) *)
+(* TODO: problem: there is no fold1 in Coq (partial) *)
 Definition build (xs : list tree) := fold_left join (fold_right step nil xs).
 
