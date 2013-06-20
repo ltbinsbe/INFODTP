@@ -6,6 +6,9 @@ Require Import Recdef.
 
 Open Scope nat_scope.
 
+Import ListNotations.
+
+(* Auxiliary definitions and lemmas *)
 Definition max (a b : nat) :=
     match nat_compare a b with
     | Lt => b
@@ -23,6 +26,23 @@ Definition ht (t : tree) :=
     end.
 
 
+Definition lmp (tim1 ti tip1 tip2 : tree) : Prop :=
+    ((ht tip1) <= (ht ti) /\ (ht ti) < (ht tip2))
+    \/ ((ht ti) < (ht tip1) /\ (ht tip1) < (ht tip2) /\ (ht tim1) < (ht tip1)).
+
+
+(* Lemma 2 about lmp *)
+Lemma lmp_2 :
+    forall (p : list tree) (s : list tree) (x y a b : tree),
+        p ++ (x :: a :: b :: y :: nil) ++ s
+        -> (ht a) >= (ht b)
+        -> (ht y) > (ht a)
+        -> lmp (x, a, b, y).
+Proof.
+
+
+
+(* Implementation of the algorithm itself *)
 Definition join (x y : tree) : tree := Bin (max (ht x) (ht y) + 1) x y.
 
 Inductive Step_acc : list tree -> Prop :=
@@ -54,4 +74,5 @@ Fixpoint step (acc : Step_acc) (t : tree) (xs : list tree) : list tree :=
 
 (* TODO: problem: there is no fold1 is Coq (partial) *)
 Definition build (xs : list tree) := fold_left join (fold_right step nil xs).
+
 
