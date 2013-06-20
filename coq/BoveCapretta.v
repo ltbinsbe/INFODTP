@@ -112,10 +112,8 @@ Theorem Lemma1 : forall (l p s : list tree) (a b : tree) (sub : l = p ++ [a;b] +
 Proof.
 Admitted.
 
-elem t (min (alltrees l)).
-
 (* Implementation of the algorithm itself *)
-
+(*
 Inductive Step_acc : list tree -> Set :=
   | step_nil  : Step_acc nil
   | step_sin  : forall (u : tree),  Step_acc (u :: nil)
@@ -123,9 +121,13 @@ Inductive Step_acc : list tree -> Set :=
                        Step_acc (v :: ts) ->
                        Step_acc (step pts (join u v) ts) ->
                        Step_acc (u :: v :: ts).
+*)
 
-Fixpoint step (acc : Step_acc) (t : tree) (xs : list tree) : list tree := 
-  match acc, xs with
+Definition admit {T: Type} : T. Admitted.
+
+Fixpoint step (t : tree) (xs : list tree) : list tree := 
+  admit.
+(*  match acc, xs with
   | step_nil, nil      => t :: nil
   | step_sin, u :: nil => 
      match nat_compare (ht t) (ht u) with
@@ -141,9 +143,47 @@ Fixpoint step (acc : Step_acc) (t : tree) (xs : list tree) : list tree :=
             | _  => step pstep t (step pts (join u v) ts)
             end
         end
-    end.
+    end.*)
 
-(* TODO: problem: there is no fold1 is Coq (partial) *)
-Definition build (xs : list tree) := fold_left join (fold_right step nil xs).
+Theorem fold_right_step : forall (l : list tree),
+  s_inc (fold_right step nil l).
+Proof.
+Admitted.
 
+Theorem fold_step_not_nil : forall (l : list tree),
+  l <> nil -> (fold_right step nil l) <> nil.
+Proof.
+  intros l NNil. induction l. contradiction NNil. reflexivity. simpl. (* here we have to unfold / simpl with step *)
+Admitted.
 
+Definition foldl1 (f : tree -> tree -> tree) (l : list tree) (P : l <> nil) : tree. 
+  case l as [| x xs].
+  contradiction P. reflexivity.
+  apply fold_right with (B := tree). 
+  exact f. exact x. exact xs.
+Qed.
+(*
+Theorem foldl1test : [Tip 2; Tip 3] <> [].
+Proof.
+  intuition. inversion H.
+Qed.
+
+Eval program in (foldl1 join [Tip 2;Tip 3] (foldl1test)).
+*)
+Theorem foldl1_is_min : forall (l1 l2 : list tree) (P : l1 <> []),
+  l1 = fold_right step nil l2 -> s_inc l1 -> minimum l2 (foldl1 join l1 P).
+Proof.
+  intros l1 l2 NNil IRes SInc. unfold minimum. intros t' flatRes. 
+  (* weird bug, cant rewrite l1? *)
+Admitted.
+
+Definition build (xs : list tree) (P : xs <> []) : tree := 
+  foldl1 join (fold_right step nil xs) (fold_step_not_nil xs P).
+
+Theorem build_is_min : forall (l : list tree) (t : tree) (P : l <> nil), 
+  t = build l P -> minimum l t.
+Proof.
+  intros l t NNil BRes. unfold build in BRes. rewrite BRes. apply foldl1_is_min. 
+    reflexivity.
+    apply fold_right_step.
+Qed.
