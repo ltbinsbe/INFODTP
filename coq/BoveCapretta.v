@@ -177,6 +177,8 @@ Proof.
                                  | Lt => apply s_inc_two
                                  | Gt => apply s_inc_sin end. apply s_inc_sin. apply s_inc_two. apply s_inc_sin.
 *)
+Admitted.
+
 Theorem fold_right_step : forall (l : list tree),
   s_inc (fold_right (fun (a : tree) (xs : list tree) => step a xs (length xs)) nil l).
 Proof.

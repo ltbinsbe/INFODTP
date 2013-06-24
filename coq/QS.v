@@ -33,7 +33,5 @@ Qed.
 Eval simpl in filter (fun y => ltb y 5) list.
 
 Definition res := quicksort list exTerm.
-Eval simpl in res.
-
-Print simpl in res.
+Eval simpl in res.s
 
