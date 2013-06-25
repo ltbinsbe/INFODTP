@@ -107,11 +107,6 @@ Qed.
 Definition minimum (l : list tree) (t : tree) : Prop :=
   forall (t' : tree), flatten t' = l -> ht t <= ht t'.
 
-Theorem Lemma1 : forall (l s : list tree) (a b : tree) (sub : l = [a;b] ++ s),
-  lmp a b l -> exists (t : tree), siblings t a b -> minimum l t.
-Proof.
-Admitted.
-
 (* Implementation of the algorithm itself *)
 (*
 Inductive Step_acc : list tree -> Set :=
@@ -170,13 +165,9 @@ Fixpoint step (t : tree) (xs : list tree) : list tree :=
 Theorem step_inc : forall (l : list tree) (t : tree),
   s_inc l -> s_inc (step t l (length l)).
 Proof.
-  intros l t SincL. induction l. simpl. apply s_inc_sin.
-  (* step *) induction l. simpl. 
-(*                               match (nat_compare (ht t) (ht a)) with 
-                                 | Eq => apply s_inc_sin
-                                 | Lt => apply s_inc_two
-                                 | Gt => apply s_inc_sin end. apply s_inc_sin. apply s_inc_two. apply s_inc_sin.
-*)
+  induction l. simpl. intros t Sinc. apply s_inc_sin.
+  (* step *) induction l. simpl. intros t sIncA. remember (nat_compare (ht t) (ht a)) as H. destruct H; [apply s_inc_sin | apply s_inc_two; apply nat_compare_lt; symmetry; assumption | apply s_inc_sin].
+    (* step *) intros t sInc. unfold step. 
 Admitted.
 
 Theorem fold_right_step : forall (l : list tree),
@@ -190,7 +181,7 @@ Theorem step_not_nil : forall (l : list tree) (t : tree),
 Proof.
   induction l. simpl. intros t contra. inversion contra. 
  (* step *) induction l. simpl. intros t. case (nat_compare (ht t) (ht a)). intros contra. inversion contra. intros contra. inversion contra. intros contra. inversion contra. 
-   (* step *) intros t. simpl. case (nat_compare (ht t) (ht a)).
+   (* step *) intros t. unfold step. case (nat_compare (ht t) (ht a)).
    (* 1/3 : induction h, 2/3 trivial, 3/3 : induction h *)
 Admitted.
 
@@ -229,11 +220,42 @@ Proof.
   intros t l1 NNil. 
 Admitted.
 
-Theorem foldl1_is_min : forall (l1 l2 : list tree) (P : l1 <> []),
-  l1 = fold_right (fun (a : tree) (xs : list tree) => step a xs (length xs)) nil l2 -> s_inc l1 -> minimum l2 (foldl1 join l1 P).
+Theorem join_preserves : forall (t1 t2 t3 : tree) (l s: list tree) (sub : l = [t1;t2] ++ s),
+  lmp t1 t2 l -> minimum l t3 -> minimum (join t1 t2 :: s) t3.
 Proof.
-  intros l1 l2 NNil IRes SInc. unfold minimum. intros t' flatRes.
 Admitted.
+
+Theorem Lemma1 : forall (l s : list tree) (a b : tree) (sub : l = [a;b] ++ s),
+  lmp a b l -> exists (t : tree), siblings t a b -> minimum l t.
+Proof.
+Admitted.
+
+Theorem foldl1_join : forall (t1 t2 : tree) (l1 l2 : list tree) (P: l1 <> []) (sub : l1 = [t1;t2] ++ l2),
+  siblings t1 t2 (foldl1 join l1 P).
+Proof.
+Admitted.
+
+Theorem join_pairs : forall (t1 t2 : tree) (l1 l2 : list tree) (P : l1 <> []) (sub : l1 = [t1;t2] ++ l2), 
+  lmp t1 t2 l1 -> minimum l1 (foldl1 join l1 P).
+Proof.
+  intros t1 t2 l1 l2 P sub lmp.
+Admitted.
+
+Theorem flatten_pres_ht : forall (t hd : tree),
+  flatten t = hd :: nil -> ht hd <= ht t.
+Proof.
+  intros t hd flthd. induction t. simpl in *. 
+    (* trivial *)
+    (* trivial from contradiction, flatten Bin cannot lead to a list of size 1 *)
+Admitted.
+
+Theorem foldl1_is_min : forall (l1 : list tree) (P : l1 <> []),
+  s_inc l1 -> minimum l1 (foldl1 join l1 P).
+Proof.
+  intros l1 NNil Sinc. destruct l1. contradiction NNil. reflexivity.
+  (* <> nil *) destruct l1. simpl. unfold minimum. intros t' flt'. apply flatten_pres_ht. assumption. 
+    (* <> nil *) apply join_pairs with (t1 := t) (t2 := t0) (l2 := l1). reflexivity. apply s_inc_two_lmp with (l2 := l1). reflexivity. assumption.
+Qed.
 
 Definition build (xs : list tree) (P : xs <> []) : tree := 
   foldl1 join (fold_right (fun (a : tree) (xs : list tree) => step a xs (length xs)) nil xs) (fold_step_not_nil xs P).
