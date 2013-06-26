@@ -1,0 +1,286 @@
+\documentclass{beamer}
+\usetheme[style=plain]{uu}
+
+%% unicode support, for text and code :)
+\usepackage[utf8x]{inputenc}
+\usepackage{ucs}
+\usepackage{autofe}
+
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{color}
+
+
+%% syntax highlighting and code font
+\usepackage{minted}
+\usepackage{fancyvrb}
+\usemintedstyle{default}
+\newminted{coq}{gobble=8,xleftmargin=20pt,mathescape,fontfamily=tt,fontsize=\footnotesize}
+\newminted{haskell}{gobble=8,xleftmargin=20pt,mathescape,fontfamily=tt,fontsize=\footnotesize}
+
+
+
+%% Metainformation
+%% PDF stuff
+\usepackage{datetime}
+\usepackage{ifpdf}
+\ifpdf
+\pdfinfo{
+    /Author (J.P.PizaniFlor, L.T. van Binsbergen)
+    /Title (Verifying Richard Bird's "On building trees of minimum height")
+    /Keywords (Dependently-typed programming, coq, proof assistant, functional pearl)
+    /CreationDate (D:\pdfdate)
+}
+\fi
+
+\title{Verifying Richard Bird's ``On building trees of minimum height''}
+
+\date{\today}
+
+\author[Binsbergen, Pizani Flor]
+{
+    L.T. van~Binsbergen
+    \and J.P.~Pizani Flor
+}
+
+\institute[Utrecht University]
+{
+    Department of Information and Computing Sciences,
+    Utrecht University
+}
+
+\subject{Dependently-typed programming}
+
+
+
+
+\begin{document}
+
+%% Code excerpts
+\defverbatim[colored]\coqLMP{
+    \begin{coqcode}
+        Inductive lmp: tree -> tree -> list tree -> Prop :=
+          | lmp_pair : forall (a b : tree), lmp a b (a :: b :: nil)
+          | lmp_threel : forall (a b x : tree),
+                           (ht a < ht b /\ ht x >= ht b) \/ ht b <= ht a
+                           -> lmp a b (x :: a :: b :: nil)
+          | lmp_threer : forall (a b y : tree) (l : list tree),
+                           (ht a < ht b /\ ht b < ht y) \/ (ht b <= ht a /\ ht a < ht y)
+                           -> lmp a b (a :: b :: y :: l)
+          | lmp_left : forall (a b x y : tree) (l l1 l2 : list tree),
+                      (l = l1 ++ (x :: a :: b :: y :: l2)) ->
+                      ht b <= ht a -> 
+                      ht b < ht y ->
+                      lmp a b l
+          | lmp_right : forall (a b x y : tree) (l l1 l2 : list tree),
+                      (l = l1 ++ (x :: a :: b :: y :: l2)) ->
+                      ht a < ht b -> 
+                      ht b < ht y ->
+                      ht x >= ht b -> 
+                      lmp a b l.
+    \end{coqcode}
+}
+
+\defverbatim[colored]\coqLemma{
+    \begin{coqcode}
+        Theorem Lemma1: forall (l s : list tree) (a b : tree)
+          (sub : l = [a;b] ++ s),
+          lmp a b l ->
+          exists (t : tree), siblings t a b -> minimum l t.
+        Proof.
+        Admitted.
+    \end{coqcode}
+}
+
+\defverbatim[colored]\coqSiblings{
+    \begin{coqcode}
+        Fixpoint siblings (t : tree) (a b : tree) : Prop :=
+          match t with 
+          | Tip _     => False
+          | Bin _ x y => a = x /\ b = y \/ siblings x a b \/ siblings y a b
+          end.
+    \end{coqcode}
+}
+
+\defverbatim[colored]\coqMinimum{
+    \begin{coqcode}
+        Definition minimum (l : list tree) (t : tree) : Prop :=
+          forall (t' : tree), flatten t' = l -> ht t <= ht t'.
+    \end{coqcode}
+}
+
+\defverbatim[colored]\coqFoldl{
+    \begin{coqcode}
+        Definition foldl1 (f : tree -> tree -> tree) (l : list tree)
+        (P : l <> nil) : tree.
+          case l as [| x xs].
+            contradiction P.
+            reflexivity.
+            apply fold_left with (B := tree).
+            exact f. exact xs. exact x.
+        Defined.
+    \end{coqcode}
+}
+
+\defverbatim[colored]\haskellStep{
+    \begin{haskellcode}
+        step t [] = [t]
+        step t [u]
+            | ht t < ht u = [t,u]
+            | otherwise   = [join t u]
+        step t (u : v : ts)
+            | ht t < ht u = t : u : v : ts
+            | ht t < ht v = step (join t u) (v : ts)
+            | otherwise   = step t (step (join u v) ts)
+    \end{haskellcode}
+}
+
+
+%% The document itself
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    \section{The pearl}
+    \label{sec:pearl}
+        \begin{frame}
+            \frametitle{``Combining a list of trees''}
+            Given a list of trees, build a tree (of minimum height) that has
+            the elements of the list as frontier (preserving order).
+
+            \begin{itemize}
+                \item We want to minimize \emph{cost}, where \emph{cost} means:
+        \[
+        \text{cost } t = (\text{max } i : 1 \leq i \leq N : \text{depth}_{i} + h_{i})
+        \]
+                \item $\text{depth}_{i}$ is the length of a path from root to tip $i$
+                \item $h_{i}$ is the height of the $i^{th}$ element of the input list
+            \end{itemize}
+        \end{frame}
+
+        \begin{frame}
+            \frametitle{Simpler but equivalent problem}
+            The problem can be stated with natural numbers instead of trees being
+            the elements of the input list.
+
+            \begin{itemize}
+                \item $ \text{hs} = [h_{1}, h_{2}, \ldots, h_{N}] $
+                \item Each element of the list is then considered the \emph{height}
+                    of the tree.
+                \item We use this ``simplified'' form of the problem in an example,
+                    but the ``full'' form is the one verified.
+            \end{itemize}
+        \end{frame}
+
+
+    \section{The algorithm}
+    \label{sec:algorithm}
+        \begin{frame}
+            \frametitle{LMP - Local Minimum Pair}
+            The basis of the algorithm proposed is the concept of a ``local minimum
+            pair'':
+
+            \begin{itemize}
+                \item A pair $(t_{i}, t_{i+1})$ in a sequence
+                    $t_{i} (1 \leq i \leq N)$ with heights $h_{i}$ such that:
+                    \begin{itemize}
+                        \item $\text{max } (h_{i-i}, h_{i}) \geq
+                            \text{max } (h_{i}, h_{i+1}) <
+                            \text{max } (h_{i+1}, h_{i+2})$
+                    \end{itemize}
+                \item An alternative set of conditions, used in the proof
+                    of correctness:
+                    \begin{itemize}
+                        \item $h_{i+1} \leq h_{i} < h_{i+2}$, or
+                        \item $(h_{i} < h_{i+1} < h_{i+2}) \land
+                            (h_{i-1} \geq h_{i+1})$
+                    \end{itemize}
+            \end{itemize}
+        \end{frame}
+
+        \begin{frame}
+            \frametitle{Greedy algorithm - example}
+            \begin{itemize}
+                \item There is \emph{at least} one LMP, the rightmost one.
+                \item The algorithm combines the rightmost LMP at each stage.
+                \item Example in the whiteboard\ldots
+            \end{itemize}
+        \end{frame}
+
+        \begin{frame}
+            \frametitle{Correctness of the algorithm}
+            The correctness of this algorithm relies fundamentally on the so-called
+            ``Lemma 1'':
+
+            \vspace{0.5cm}
+
+            ``\textbf{Suppose} that $(t_{i}, t_{i+1})$ in an \emph{lmp} in a given
+            sequence of trees $t_{j} (1 \leq j \leq N)$. \textbf{Then} the sequence
+            can be combined into a tree T of \textbf{minimum height} in which
+            $(t_{i}, t_{i+1})$ are \textbf{siblings}.''
+
+            \pause
+            \begin{itemize}
+                \item In the paper, the proof of this lemma is done
+                    \emph{by contradiction} and case analysis on whether the
+                    trees are \emph{critical}.
+            \end{itemize}
+        \end{frame}
+
+        \begin{frame}
+            \frametitle{Correctness of the algorithm}
+            How we expressed ``Lemma 1'' in Coq:
+            \vspace{0.5cm}
+
+            \coqLemma
+            \coqSiblings
+            \coqMinimum
+        \end{frame}
+
+
+    \section{Implementation}
+    \label{sec:implementation}
+        \begin{frame}
+            \frametitle{The ``build'' function and \emph{foldl1}}
+            The ``top level'' function of the algorithm looks like this:
+
+            \vspace{0.5cm}
+            \texttt{build = \emph{foldl1} join . foldr \emph{step} []}
+            \vspace{0.5cm}
+
+            \begin{itemize}
+                \item The first big issue we face is how to describe a \textbf{total}
+                    version of \emph{foldl1} in Coq.
+                \pause
+                \item We modeled this by passing a proof that the list is non-empty:
+                    \coqFoldl
+            \end{itemize}
+
+        \end{frame}
+
+        \begin{frame}
+            \frametitle{Non-structural recursion in \emph{step}}
+            The other BIG issue faced by us is the use of non-structural recursion
+            in the function \emph{step}:
+
+            \vspace{0.5cm}
+
+            \haskellStep
+
+            We tried:
+            \begin{itemize}
+                \item ``Function'' keyword.
+                \item \emph{Bove-Capretta}
+                    \begin{itemize}
+                        \item Termination predicate and \emph{step} are
+                            \emph{mutually recursive}.
+                    \end{itemize}
+                \item Define \emph{step} using structural recursion on a natural
+                    $n \geq len(l)$.
+            \end{itemize}
+        \end{frame}
+
+
+\end{document}
