@@ -14,25 +14,6 @@ Open Scope nat_scope.
 
 Import ListNotations.
 
-(* Auxiliary definitions and lemmas *)
-Definition max (a b : nat) :=
-    match nat_compare a b with
-    | Lt => b
-    | _  => a
-    end.
-
-Theorem s_inc_two_lmp : forall (a b : tree) (l1 l2 : list tree), 
-  l1 = (a :: b :: l2) -> s_inc l1 -> lmp a b l1.
-Proof.
-  intros a b l1 l2 Cons Inc. rewrite Cons. 
-  destruct l2 as [|y]. apply lmp_pair. 
-    (* step *) apply lmp_threer. left. 
-    (* using the fact that the list is strictly increasing on both cases *)
-      split; rewrite Cons in Inc; inversion Inc; inversion H0.
-        assumption.
-        inversion H4. assumption. inversion H6. assumption.
-Qed.
-
 Definition build (xs : list tree) (P : xs <> []) : tree := 
   foldl1 join (fold_right (fun (a : tree) (xs : list tree) => step a xs (length xs)) nil xs) (fold_step_not_nil xs P).
 

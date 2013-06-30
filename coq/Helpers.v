@@ -1,13 +1,14 @@
 
 Open Scope nat_scope.
 Require Import Coq.Arith.Compare_dec.
-
+Require Import Coq.Arith.Lt.
 
 (* trivial helpers *)
 
 Theorem eq_ge : forall (a b : nat),
   Eq = nat_compare a b -> a >= b.
 Proof.
+  intros a b Eq.
 Admitted.
 
 Theorem gt_ge : forall (a b : nat),
