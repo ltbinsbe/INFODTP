@@ -5,6 +5,7 @@ Require Import Coq.Arith.Compare_dec.
 Require Import Coq.Arith.Lt.
 Require Import Coq.Arith.Gt.
 Require Import Arith.Wf_nat.
+Require Import Helpers.
 Require Import Recdef.
 Require Import Tree.
 
@@ -38,15 +39,32 @@ Inductive s_inc : (list tree) -> Prop :=
   | s_inc_two  : forall (x y : tree), ht x < ht y -> s_inc (x :: y :: nil)
   | s_inc_cons : forall (x y : tree) (ys : list tree), ht x < ht y /\ s_inc (y :: ys) -> s_inc (x :: y :: ys).
 
+
+
+Theorem step_jointuv : forall (t u v : tree) (ts : list tree) (H3 : nat),
+  ht t >= ht u -> ht t < ht v -> H3 = (length (v :: ts)) -> step (join t u) (v :: ts) H3 = join t u :: v :: ts.
+Proof.
+Admitted.
+
+Theorem s_trans : forall (n m : nat),
+  S n = S m -> n = m.
+Proof.
+Admitted.
+
+Theorem step_bigger : forall (t u : tree) (ts : list tree),
+  s_inc (u :: ts) -> ht t >= ht u -> s_inc (step t (u :: ts) (length (u :: ts))). 
+Proof.
+ intros t u ts Sinc t_ge_u.
+
 Theorem tuvts_step : forall (t u v : tree) (ts : list tree),
   ht t < ht u -> step t (u :: v :: ts) (length (u :: v :: ts)) = t :: u :: v :: ts.
 Proof.
   intros t u v ts t_lt_u.
   simpl. remember (nat_compare (ht t) (ht u)) as H. destruct H. 
-    Focus 2. reflexivity.
-    (* contradicting assumptions *)
-    (* contradicting assumptions *)
-Admitted.
+    Focus 2. reflexivity. 
+    contradict t_lt_u. apply not_eq_r. apply eq_ge. assumption.
+    contradict t_lt_u. apply not_eq_r. apply gt_ge. assumption.
+Qed.
 
 Theorem tuvts_inc : forall (t u v : tree) (ts : list tree),
   s_inc (u :: v :: ts) -> ht t < ht u -> s_inc (t :: u :: v :: ts).
@@ -62,31 +80,53 @@ Theorem jtuvts_step : forall (t u v : tree) (ts : list tree),
   ht t >= ht u -> ht t < ht v -> step t (u :: v :: ts) (length (u :: v :: ts)) = join t u :: v :: ts.
 Proof.
   intros t u v ts t_ge_u t_lt_v.
-  simpl. remember (nat_compare (ht t) (ht u)) as H. destruct H.
-Admitted.
-
-Theorem jtuvts_inc : forall (t u v : tree) (ts : list tree),
-  s_inc (u :: v :: ts) -> ht t >= ht u -> ht t < ht v -> s_inc (join t u :: v :: ts).
-Proof.
-Admitted.
+  remember (length (u :: v :: ts)) as H3. destruct H3. simpl in HeqH3. inversion HeqH3. simpl.
+    remember (nat_compare (ht t) (ht u)) as H. destruct H. simpl.
+      remember (nat_compare (ht t) (ht v)) as H2. destruct H2.
+        contradict t_lt_v. apply not_eq_r. apply eq_ge. assumption. 
+        Focus 2. contradict t_lt_v. apply not_eq_r. apply gt_ge. assumption.
+        Focus 2. contradict t_ge_u. apply not_ge_r. apply nat_compare_lt. symmetry. assumption.
+        Focus 2. remember (nat_compare (ht t) (ht v)) as H2. destruct H2.
+          contradict t_lt_v. apply not_eq_r. apply eq_ge. assumption.
+          Focus 2. contradict t_lt_v. apply not_eq_r. apply gt_ge. assumption.
+          apply step_jointuv. assumption. assumption. simpl in *. apply s_trans. assumption.
+        apply step_jointuv. assumption. assumption. simpl in *. apply s_trans. assumption.
+Qed.
 
 Theorem jtjuvts_step : forall (t u v : tree) (ts : list tree),
   ht t >= ht u -> ht t >= ht v -> step t (u :: v :: ts) (length (u :: v :: ts)) = join t (join u v) :: ts.
 Proof.
 Admitted.
 
+Theorem jtuvts_inc2 : forall (t u v : tree) (ts : list tree),
+  s_inc (u :: v :: ts) -> ht t >= ht u -> ht t < ht v -> ht (join t u) >= ht v -> s_inc (join (join t u) v :: ts).
+Proof.
+Admitted.
+
+Theorem jtuvts_inc3 : forall (t u v : tree) (ts : list tree),
+  s_inc (u :: v :: ts) -> ht t >= ht u -> ht t < ht v -> ht (join t u) < ht v -> s_inc (join t u :: v :: ts).
+Proof.
+  intros t u v ts Sinc t_ge_u t_lt_v jtu_lt_v. remember (nat_compare (ht (join t u)) (ht v)) as H. destruct H.
+    Focus 2. apply s_inc_cons. split.
+      assumption. 
+      inversion Sinc. apply s_inc_sin. destruct H0. assumption.
+    contradict jtu_lt_v. apply not_eq_r. apply eq_ge. assumption.
+    contradict jtu_lt_v. apply not_eq_r. apply gt_ge. assumption.
+Qed.
+
+Theorem jtuvts_inc1 : forall (t u v : tree) (ts : list tree),
+  s_inc (u :: v :: ts) -> ht t >= ht u -> ht t < ht v -> s_inc (step (join t u) (v :: ts) (length (v :: ts))).
+Proof.
+  intros t u v ts Sinc t_ge_u t_lt_v. remember (nat_compare (ht (join t u)) (ht v)) as H. destruct H.
+    induction ts. simpl. remember (nat_compare (max (ht t) (ht u) + 1) (ht v)) as H. destruct H.
+      apply s_inc_sin. apply s_inc_two. apply nat_compare_lt. symmetry. assumption. apply s_inc_sin.
+      (* step *) rewrite jtjuvts_step.
+        apply s_inc_cons.
+      
+Admitted.
+
 Theorem jtjuvts_inc : forall (t u v : tree) (ts : list tree),
   s_inc (u :: v :: ts) -> ht t >= ht u -> ht t >= ht v -> s_inc (join t (join u v) :: ts).
-Proof.
-Admitted.
-
-Theorem eq_ge : forall (a b : nat),
-  Eq = nat_compare a b -> a >= b.
-Proof.
-Admitted.
-
-Theorem gt_ge : forall (a b : nat),
-  Gt = nat_compare a b -> a >= b.
 Proof.
 Admitted.
 
@@ -137,9 +177,26 @@ Theorem step_not_nil : forall (l : list tree) (t : tree),
 Proof.
   induction l. simpl. intros t contra. inversion contra. 
  (* step *) induction l. simpl. intros t. case (nat_compare (ht t) (ht a)). intros contra. inversion contra. intros contra. inversion contra. intros contra. inversion contra. 
-   (* step *) intros t. unfold step. case (nat_compare (ht t) (ht a)).
-   (* 1/3 : induction h, 2/3 trivial, 3/3 : induction h *)
-Admitted.
+   (* step *) intros t. remember (nat_compare (ht t) (ht a)) as H. destruct H.
+        remember (nat_compare (ht t) (ht a0)) as H2. destruct H2.
+          rewrite jtjuvts_step. intuition. inversion H. apply eq_ge. assumption. 
+                                                 apply eq_ge. assumption.
+          rewrite jtuvts_step. intuition. inversion H. apply eq_ge. assumption.
+                                                 apply nat_compare_lt. symmetry. assumption.
+          rewrite jtjuvts_step. intuition. inversion H. apply eq_ge. assumption.
+                                                 apply gt_ge. assumption.
+        remember (nat_compare (ht t) (ht a0)) as H2. destruct H2.
+          rewrite tuvts_step. intuition. inversion H. apply nat_compare_lt. symmetry. assumption.
+          rewrite tuvts_step. intuition. inversion H. apply nat_compare_lt. symmetry. assumption. 
+          rewrite tuvts_step. intuition. inversion H. apply nat_compare_lt. symmetry. assumption. 
+        remember (nat_compare (ht t) (ht a0)) as H2. destruct H2.
+          rewrite jtjuvts_step. intuition. inversion H. apply gt_ge. assumption. 
+                                                 apply eq_ge. assumption.
+          rewrite jtuvts_step. intuition. inversion H. apply gt_ge. assumption.
+                                                 apply nat_compare_lt. symmetry. assumption.
+          rewrite jtjuvts_step. intuition. inversion H. apply gt_ge. assumption.
+                                                 apply gt_ge. assumption.
+Qed.
 
 Theorem fold_right_not_nil : forall (l : list tree),
   l <> [] -> fold_right (fun (a : tree) (xs : list tree) => step a xs (length xs)) [] l <> [].

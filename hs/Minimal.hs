@@ -1,8 +1,8 @@
 module Minimal where
 
-data Tree = Tip | Bin Int Tree Tree
+data Tree = Tip Int | Bin Int Tree Tree
 
-ht Tip = 0
+ht (Tip n) = n
 ht (Bin n _ _) = n
 
 join x y = Bin ((max (ht x) (ht y)) + 1) x y
@@ -46,17 +46,19 @@ build = foldl1 join . (foldr step [])
 build_fold xs = foldl1 join (fold_step xs [])
 
 instance Show Tree where
-    show Tip = show 0
-    show (Bin n _ _) = show n
+    show (Tip n) = show n
+    show (Bin _ t1 t2) = "(join " ++ show t1 ++ " " ++ show t2 ++ ")"
 
-example = [
-          Bin 4 Tip Tip
-        , Bin 2 Tip Tip
-        , Bin 3 Tip Tip
-        , Bin 5 Tip Tip
-        , Bin 1 Tip Tip
-        , Bin 4 Tip Tip
-        , Bin 6 Tip Tip 
+example1 = map Tip [1..5]
+
+example2 = [
+          Tip 4
+        , Tip 2
+        , Tip 3
+        , Tip 5 
+        , Tip 1
+        , Tip 4
+        , Tip 6 
     ]
 
 --instance Read tree where

@@ -6,6 +6,7 @@ Require Import Coq.Arith.Lt.
 Require Import Coq.Arith.Gt.
 Require Import Arith.Wf_nat.
 Require Import Recdef.
+Require Import Helpers.
 Require Import Tree.
 Require Import SInc.
 
@@ -70,3 +71,26 @@ Admitted.
     (* <> nil *) apply join_pairs with (t1 := t) (t2 := t0) (l2 := l1). reflexivity. apply s_inc_two_lmp with (l2 := l1). reflexivity. assumption.
 Qed.
 *)
+
+(* proving the correctness of using join in fold1 *)
+(* assuming that foldl_left acts as it should this theorem proves that foldl1 preserves
+   the fact that the left-most pair of the list it works on is an lmp
+ *)
+
+Theorem join_preserverse_leftmost_lmp : forall (t u v : tree) (ts : list tree),
+  s_inc (t :: u :: v :: ts) -> lmp (join t u) v (join t u :: v :: ts).
+Proof.
+ intros t u v ts Sinc. assert (H : ht (join t u) <= ht v). 
+   (* ass 1 *) simpl. replace (max (ht t) (ht u) + 1) with (S (max (ht t) (ht u))). apply lt_le_S. unfold max. remember (nat_compare (ht t) (ht u)) as R. destruct R.
+     inversion Sinc. inversion H0.  inversion H4. apply lt_trans with (m := ht u).  assumption. assumption.  apply lt_trans with (m := ht u). assumption. inversion H6. assumption. 
+     inversion Sinc. inversion H0. inversion H4.  assumption.  inversion H6. assumption. 
+     inversion Sinc. inversion H0.  inversion H4. apply lt_trans with (m := ht u).  assumption. assumption.  apply lt_trans with (m := ht u). assumption. inversion H6. assumption.
+   (* replace *) symmetry. apply NPeano.Nat.add_1_r.
+   induction ts. apply lmp_pair. 
+     (* step *) remember (nat_compare (ht (join t u)) (ht v)) as R1. destruct R1.
+       (* R1 = Eq *)apply lmp_threer. right. split. apply eq_ge. assumption. 
+                                       inversion Sinc. inversion H1. inversion H5. inversion H7. inversion H11. replace (ht (join t u)) with (ht v). assumption. symmetry. apply nat_compare_eq. symmetry. assumption. 
+                                                                                                                replace (ht (join t u)) with (ht v). inversion H13. assumption. symmetry. apply nat_compare_eq. symmetry. assumption.
+       (* R1 = LT *)apply lmp_threer. left. split. apply nat_compare_lt. symmetry. assumption. inversion Sinc. inversion H1.  inversion H5. inversion H7. inversion H11. assumption. inversion H13. assumption.
+       (* R1 = GT *)apply lmp_threer. contradict H. apply lt_not_le. apply nat_compare_gt. symmetry. assumption.
+Qed.
