@@ -22,10 +22,9 @@ Definition ht (t : tree) :=
     | Bin n _ _ => n
     end.
 
-
 Definition join (x y : tree) : tree := Bin (max (ht x) (ht y) + 1) x y.
 
-Fixpoint fold_step (input : list tree) (acc : list tree) : list tree :=
+Fixpoint fold_step (input : list tree) (acc : list tree) {struct input} : list tree  :=
   match input with
   | nil => acc
   | i :: is => 

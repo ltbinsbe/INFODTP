@@ -33,7 +33,7 @@ Admitted.
    assuming that 'fold_right step []' produces a strictly increasing list
 *)
 
-Theorem s_inc_two_lmp : forall (a b : tree) (l1 l2 : list tree), 
+Theorem s_inc_leftmost_lmp : forall (a b : tree) (l1 l2 : list tree), 
   l1 = (a :: b :: l2) -> s_inc l1 -> lmp a b l1.
 Proof.
   intros a b l1 l2 Cons Inc. rewrite Cons. 
@@ -50,7 +50,7 @@ Qed.
    assuming that foldl_left acts as it should 
 *)
 
-Theorem join_preserverse_leftmost_lmp : forall (t u v : tree) (ts : list tree),
+Theorem join_preservse_leftmost_lmp : forall (t u v : tree) (ts : list tree),
   s_inc (t :: u :: v :: ts) -> lmp (join t u) v (join t u :: v :: ts).
 Proof.
  intros t u v ts Sinc. assert (H : ht (join t u) <= ht v). 

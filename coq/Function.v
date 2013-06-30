@@ -39,7 +39,8 @@ Function step (t : tree) (xs : list tree) {measure length xs} : list tree :=
         | _  =>
             match nat_compare (ht t) (ht v) with
             | Lt => step (join t u) (v :: ts)
-            | _  => (step (join u v) ts)
+            | _  => (* step t *) (step (join u v) ts) 
+                    (* step t (step (join u v) ts) is required, but not allowed *)
             end
         end
     end.
@@ -51,7 +52,4 @@ Proof.
   intros t xs u l v ts L X C1 C2. simpl. apply Lt.lt_n_Sn.
   intros t xs u l v ts L X C1 C2. simpl. apply le_lt_SS. apply le_n. 
 Qed.
-
-(* TODO: problem: there is no fold1 is Coq (partial) *)
-Definition build (xs : list tree) := fold_left join (fold_right step nil xs).
 

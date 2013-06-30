@@ -16,7 +16,7 @@ Import ListNotations.
 Fixpoint step (t : tree) (xs : list tree) (n : nat) {struct n} : list tree :=
     match xs,n with
     | nil,_       => [t]
-    | _, 0        => [t]
+    | _, 0        => []
     | u :: nil, _ =>
         match nat_compare (ht t) (ht u) with
         | Lt => t :: u :: nil
@@ -40,14 +40,12 @@ Inductive s_inc : (list tree) -> Prop :=
   | s_inc_cons : forall (x y : tree) (ys : list tree), ht x < ht y /\ s_inc (y :: ys) -> s_inc (x :: y :: ys).
 
 
-
-
 Theorem s_trans : forall (n m : nat),
   S n = S m -> n = m.
 Proof.
 Admitted.
 
-Theorem step_bigger : forall (t u : tree) (ts : list tree),
+Theorem step_bigger_inc : forall (t u : tree) (ts : list tree),
   s_inc (u :: ts) -> ht t >= ht u -> s_inc (step t (u :: ts) (length (u :: ts))). 
 Proof.
  intros t u ts Sinc t_ge_u.
@@ -63,14 +61,22 @@ Proof.
     contradict t_lt_u. apply not_eq_r. apply gt_ge. assumption.
 Qed.
 
-Theorem step_jointuv : forall (t u v : tree) (ts : list tree) (H3 : nat),
-  ht t >= ht u -> ht t < ht v -> H3 = (length (v :: ts)) -> step (join t u) (v :: ts) H3 = join t u :: v :: ts.
+Theorem step_jointuv : forall (t u v : tree) (ts : list tree), (* we need additional knowledge, about join t u *)
+  ht t >= ht u -> ht t < ht v -> step (join t u) (v :: ts) (length (v :: ts)) = join t u :: v :: ts.
 Proof.
-  intros t u v ts H3 t_ge_u t_lt_v Len.
-    remember (length (u :: v :: ts)) as R1. destruct R1. inversion HeqR1. 
-      remember (nat_compare (ht t) (ht u)) as R2. destruct R2. 
+  intros t u v ts t_ge_u t_lt_v.
+  destruct ts. simpl. remember (nat_compare (max (ht t) (ht u) + 1) (ht v)) as R. destruct R.
+    
+  
+    (* step *) Focus 2. simpl.
+    remember (nat_compare (max (ht t) (ht u) + 1) (ht v)) as RM. destruct RM.
+      remember (nat_compare (max (ht t) (ht u) + 1) (ht t0)) as R2. destruct R2. simpl. 
+        destruct ts. 
+          remember (nat_compare (max (ht t) (ht u) + 1) (ht (join v t0))) as R3. destruct R3.
+            
         remember (nat_compare (ht t) (ht v)) as R3. destruct R3.
-          contradict t_lt_v. apply not_eq_r. apply eq_ge. assumption.
+          contradict t_lt_v. apply not_eq_r. apply eq_ge. assumption. simpl.
+          unfold step. simpl.
 (* how to unfold properly? *)
 Admitted.
 
@@ -188,8 +194,8 @@ Proof.
     (* step *)
       remember (nat_compare (ht (join t u)) (ht v)) as R. destruct R.
         Focus 2. apply tuvts_inc_alt. inversion Sinc. inversion H0. assumption. apply nat_compare_lt. symmetry. assumption.
-        apply step_bigger. inversion Sinc. inversion H0. assumption. apply eq_ge. assumption.
-        apply step_bigger. inversion Sinc. inversion H0. assumption. apply gt_ge. assumption.
+        apply step_bigger_inc. inversion Sinc. inversion H0. assumption. apply eq_ge. assumption.
+        apply step_bigger_inc. inversion Sinc. inversion H0. assumption. apply gt_ge. assumption.
 Qed.
 
 Theorem tjuvts_inc : forall (t u v : tree) (ts : list tree),
