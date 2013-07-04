@@ -112,7 +112,7 @@ Proof.
     (* trivial from contradiction, flatten Bin cannot lead to a list of size 1 *)
 Admitted.
 
-Theorem foldl1_is_min : forall (l1 l2 : list tree) (P : l1 <> []) (H : l1 = (fold_right (fun  (a : tree) (xs : list tree) => step a xs (length xs)) [] l2)),
+Theorem foldl1_is_min : forall (l1 l2 : list tree) (P : l1 <> []) (H : l1 = (fold_right (fun  (a : tree) (xs : list tree) => step a xs) [] l2)),
   minimum l2 (foldl1 join l1 P).
 Proof.
   intros l1 l2 P l1Is. destruct l1. contradiction P. reflexivity.
