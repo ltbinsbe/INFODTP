@@ -158,7 +158,7 @@ Proof.
   intros l NNil. apply fold_right_not_nil. assumption.
 Qed.
 
-Theorem fold_right_step : forall (l : list tree),
+Theorem fold_step_inc : forall (l : list tree),
   s_inc (fold_right (fun (a : tree) (xs : list tree) => step a xs) nil l).
 Proof.
   induction l as [|l']. simpl. apply s_inc_nil. simpl. apply step_inc. assumption.
