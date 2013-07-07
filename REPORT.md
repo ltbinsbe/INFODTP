@@ -258,16 +258,6 @@ the new elements height is not smaller the that of the head of the list.
 This behavior corresponds directly to the definition of the function called
 $join\_until\_smaller$ which can be found in SInc.v
 
-In fact, we could have replaced our entire function step by this definition, 
-making us wonder why the author came up with the nested recursive call in 
-the first place. It is not required for deciding that every join only joins
-an lmp. When the newly added tree's height is smaller then the tree at the
-head of the list, we can just add it. Otherwise its height is >= then the
-height of the head of the list meaning that these two elements
-always form an lmp, given
-that the list we have so far is strictly increasing (which we know is the case
-since step only receives as input what it has created before).
-
 ### Proofs about the results of $fold\;step\;[]$
 We have to show that $fold\;step\;[]$ produces a non-empty list (in order to use
 $foldl1$) and have to show that this list is strictly increasing (to guarantee that
