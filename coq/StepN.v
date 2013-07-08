@@ -1,4 +1,3 @@
-
 Require Import Coq.Strings.String.
 Require Import Coq.Lists.List.
 Require Import Coq.Arith.Compare_dec.
@@ -12,6 +11,7 @@ Require Import Tree.
 Open Scope nat_scope.
 
 Import ListNotations.
+
 
 Fixpoint step (t : tree) (xs : list tree) (n : nat) {struct n} : list tree :=
   match n with

@@ -1,4 +1,3 @@
-
 Require Import Coq.Strings.String.
 Require Import Coq.Lists.List.
 Require Import Coq.Arith.Compare_dec.
@@ -13,63 +12,75 @@ Open Scope nat_scope.
 
 Import ListNotations.
 
+
 Inductive s_inc : (list tree) -> Prop :=
-  | s_inc_nil  : s_inc nil
-  | s_inc_sin  : forall (x : tree), s_inc (x :: nil)
-  | s_inc_two  : forall (x y : tree), ht x < ht y -> s_inc (x :: y :: nil)
-  | s_inc_cons : forall (x y : tree) (ys : list tree), ht x < ht y /\ s_inc (y :: ys) -> s_inc (x :: y :: ys).
+    | s_inc_nil  : s_inc nil
+    | s_inc_sin  : forall (x : tree), s_inc (x :: nil)
+    | s_inc_two  : forall (x y : tree), ht x < ht y -> s_inc (x :: y :: nil)
+    | s_inc_cons : forall (x y : tree) (ys : list tree),
+                          ht x < ht y /\ s_inc (y :: ys) -> s_inc (x :: y :: ys).
 
 Fixpoint join_until_smaller (t : tree) (ts : list tree) :=
-  match ts with
-  | nil => [t]
-  | x :: xs => 
-    match nat_compare (ht t) (ht x) with
-    | Eq => join_until_smaller (join t x) xs
-    | Lt => t :: x :: xs
-    | Gt => join_until_smaller (join t x) xs
-    end
-  end.
+    match ts with
+    | nil     => [t]
+    | x :: xs =>
+        match nat_compare (ht t) (ht x) with
+        | Eq => join_until_smaller (join t x) xs
+        | Lt => t :: x :: xs
+        | Gt => join_until_smaller (join t x) xs
+        end
+    end.
 
-Theorem join_until_smaller_produces : forall (ts : list tree) (t : tree),
-  join_until_smaller t ts <> [].
+Theorem join_until_smaller_produces: forall (ts : list tree) (t : tree),
+    join_until_smaller t ts <> [].
 Proof.
-  induction ts. simpl. intros t contra. inversion contra.
-  intros t. remember (nat_compare (ht t) (ht a)) as R. destruct R.
-    simpl. rewrite <- HeqR. apply IHts.
-    simpl. rewrite <- HeqR. intros contra. inversion contra. 
-    simpl. rewrite <- HeqR. apply IHts.
+    induction ts. simpl. intros t contra. inversion contra.
+    intros t. remember (nat_compare (ht t) (ht a)) as R. destruct R.
+        simpl. rewrite <- HeqR. apply IHts.
+        simpl. rewrite <- HeqR. intros contra. inversion contra. 
+        simpl. rewrite <- HeqR. apply IHts.
 Qed.
 
-Theorem join_until_smaller_inc : forall (ts : list tree) (t : tree),
-  s_inc ts -> s_inc (join_until_smaller t ts).
+Theorem join_until_smaller_inc: forall (ts : list tree) (t : tree),
+    s_inc ts -> s_inc (join_until_smaller t ts).
 Proof.
-  induction ts. intros t s_inc_nil. simpl. apply s_inc_sin.
-  intros t s_inc_ats. remember (nat_compare (ht t) (ht a)) as R. destruct R.
-    simpl. rewrite <- HeqR. apply IHts. inversion s_inc_ats. apply s_inc_nil. apply s_inc_sin. destruct H0. assumption. 
-    simpl. rewrite <- HeqR. apply s_inc_cons. split. apply nat_compare_lt. symmetry. assumption. assumption.
-    simpl. rewrite <- HeqR. apply IHts. inversion s_inc_ats. apply s_inc_nil. apply s_inc_sin. destruct H0. assumption. 
+    induction ts.
+        intros t s_inc_nil.
+        simpl. apply s_inc_sin.
+        intros t s_inc_ats.
+        remember (nat_compare (ht t) (ht a)) as R.
+        destruct R.
+            simpl. rewrite <- HeqR. apply IHts. inversion s_inc_ats.
+            apply s_inc_nil. apply s_inc_sin. destruct H0. assumption.
+
+            simpl. rewrite <- HeqR. apply s_inc_cons. split.
+            apply nat_compare_lt. symmetry. assumption. assumption.
+
+            simpl. rewrite <- HeqR. apply IHts. inversion s_inc_ats.
+            apply s_inc_nil. apply s_inc_sin. destruct H0. assumption.
 Qed.
+
 
 Fixpoint step (t : tree) (xs : list tree) : list tree :=
     match xs with
     | nil  => [t]
     | u :: vs =>
-      match vs with 
-        | nil => 
-          match nat_compare (ht t) (ht u) with
-          | Lt => t :: u :: nil
-          | _  => (join t u) :: nil
-          end
-        | v :: ts =>
-          match nat_compare (ht t) (ht u) with
-          | Lt => t :: u :: v :: ts
-          | _  =>
-              match nat_compare (ht t) (ht v) with
-              | Lt => step (join t u) vs
-              | _  => join_until_smaller t (join_until_smaller (join u v) ts)
-              end
-          end
-      end
+        match vs with 
+            | nil => 
+                match nat_compare (ht t) (ht u) with
+                | Lt => t :: u :: nil
+                | _  => (join t u) :: nil
+                end
+            | v :: ts =>
+                match nat_compare (ht t) (ht u) with
+                | Lt => t :: u :: v :: ts
+                | _  =>
+                    match nat_compare (ht t) (ht v) with
+                    | Lt => step (join t u) vs
+                    | _  => join_until_smaller t (join_until_smaller (join u v) ts)
+                    end
+                end
+        end
     end.
 
 
