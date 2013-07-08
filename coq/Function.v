@@ -1,4 +1,3 @@
-
 Require Import Coq.Lists.List.
 Require Import Coq.Arith.Compare_dec.
 Require Import Arith.Wf_nat.
@@ -6,11 +5,13 @@ Require Import Recdef.
 
 Open Scope nat_scope.
 
+
 Definition max (a b : nat) :=
     match nat_compare a b with
     | Lt => b
     | _  => a
     end.
+
 
 Inductive tree :=
     | Tip : tree
@@ -45,11 +46,11 @@ Function step (t : tree) (xs : list tree) {measure length xs} : list tree :=
         end
     end.
 Proof.
-  intros t xs u l v ts L X C1 C2. simpl. apply le_lt_SS. apply le_n.
-  intros t xs u l v ts L X C1 C2. simpl. apply Lt.lt_n_Sn. 
-  intros t xs u l v ts L X C1 C2. simpl. apply le_lt_SS. apply le_n.
-  intros t xs u l v ts L X C1 C2. simpl. apply le_lt_SS. apply le_n. 
-  intros t xs u l v ts L X C1 C2. simpl. apply Lt.lt_n_Sn.
-  intros t xs u l v ts L X C1 C2. simpl. apply le_lt_SS. apply le_n. 
+    intros t xs u l v ts L X C1 C2. simpl. apply le_lt_SS. apply le_n.
+    intros t xs u l v ts L X C1 C2. simpl. apply Lt.lt_n_Sn. 
+    intros t xs u l v ts L X C1 C2. simpl. apply le_lt_SS. apply le_n.
+    intros t xs u l v ts L X C1 C2. simpl. apply le_lt_SS. apply le_n. 
+    intros t xs u l v ts L X C1 C2. simpl. apply Lt.lt_n_Sn.
+    intros t xs u l v ts L X C1 C2. simpl. apply le_lt_SS. apply le_n. 
 Qed.
 
