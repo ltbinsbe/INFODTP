@@ -36,9 +36,9 @@ will halt in a single tree that is of minimum height.
 
 
 # The main definition
-The author provides us with an algorithm that consists of two steps. One 'preprocessing' step that
+The author provides us with an algorithm that consists of two steps. One 'pre-processing' step that
 will produce a list of trees which is strictly increasing (using the height of the trees as the
-cost function), and a final step that will transform this preprocessed list (which might already
+cost function), and a final step that will transform this pre-processed list (which might already
 contain but a single element) into a single tree.
 
 Since we show that for any strictly increasing list, the leftmost pair is always an lmp, using
@@ -46,9 +46,10 @@ $foldl\;join$ on this list will create a tree of minimal height.
 
 > build = foldl1 join . fold\_right step []
 
-This algorithm works in linear time due to the preprocessing. In order to prove the correctness of
+This algorithm works in linear time due to the pre-processing. In order to prove the correctness of
 this algorithm we will split up the work in two phases (each on one end of the function composition
 operator):
+
   * First that $fold\_right\;step\;[]$ produces a strictly increasing list.
   * Second that $foldl1\;join$, given a strictly increasing list, produces a tree of minimum height
 
@@ -227,57 +228,49 @@ head of the list. This behavior corresponds directly to the definition of the fu
 $join\_until\_smaller$ which can be found in **SInc.v**
 
 ### Proofs about the results of $fold\;step\;[]$
-We have to show that $fold\;step\;[]$ produces a non-empty list (in order to use
-$foldl1$) and have to show that this list is strictly increasing (to guarantee that
-$foldl1\;join$ will always join local minimum pairs). The proofs can be found
-in SInc.v and their theorems are named $fold\_step\_not\_nil$ and $fold\_step\_inc$,
-respectively.
-Both proofs rely heavily on the fact that these properties hold for the
-function $step$ itself. Which is shown in the proofs of theorems $step\_inc$
-and $step\_not\_nil$.
+We have to show that $fold\;step\;[]$ produces a non-empty list (in order to use $foldl1$) and have
+to show that this list is strictly increasing (to guarantee that $foldl1\;join$ will always join
+LMPs). The proofs can be found in **SInc.v** and their theorems are named $fold\_step\_not\_nil$
+and $fold\_step\_inc$, respectively. Both proofs rely heavily on the fact that these properties
+hold for the _step_ function itself, which is shown in the proofs of theorems $step\_inc$ and
+$step\_not\_nil$.
 
-We were able to give these proofs for our alternative definition of step
-(see SInc.v), but not for our definition using an amortizing argument (see
-StepN.v). The difference lies in the fact that the alternative definition
-of step no longer has a nested recursive call, which requires just the right
-induction hypothesis, and is therefor much easier.
+We were able to give these proofs for our alternative definition of step (see **SInc.v**), but not
+for the definition using an amortizing argument (see **StepN.v**). The difference lies in the fact
+that the alternative definition of step no longer has a nested recursive call, then requiring only
+the right induction hypothesis, and being therefore much easier.
+
+
 
 # Open endings
-Given the theorems and definitions we have shown that the algorithm proposed
-in the paper 'On building trees of minimum height' by Richard S. Bird
-is indeed correct, meaning that the algorithm produces a tree of minimum 
-from an input list of subtrees and doing so in such a way that the
-frontier of the result tree is the same as the input list.
-However, there are some open endings to our story. Namely:
+Given the theorems and definitions, we have shown that the algorithm proposed in the paper 'On
+building trees of minimum height' by Richard S. Bird is indeed correct, meaning that the algorithm
+produces a tree of minimum height from an input list of subtrees and does so in such a way that the
+frontier of the result tree is the same as the input list. However, there are some open endings to
+our story. Namely:
 
-* We have not proved the correctness of Lemma 1, which can be considered a
-big miss since the correctness of the algorithm relies on it. However, Bird
-has proven it to be correct in the paper itself, which made us decide to focus
-on (correctness of) the definitions used in the paper.
+  * We have not proved the correctness of _Lemma 1_, which can be considered a big miss (since the
+    correctness of the algorithm relies on it). However, Bird has proven it to be correct in the
+    paper itself, which made us decide to focus on (the correctness of) other definitions.
 
-* Prove $foldl1\;join\Rightarrow minimum$ using Lemma 1 and a definition of $minimum$
-explicitly, in such a way that it can be used in the proof for function
-$build$. We have only shown this implicitly, meaning that we did not relate
-$foldl1 join$ directly to Lemma 1 or the definition of $minimum$.
+  * Prove $foldl1\;join\Rightarrow minimum$ using _Lemma 1_ and a definition of $minimum$ explicitly,
+    in such a way that it can be used in the proof for $build$. We have only shown this implicitly,
+    meaning that we did not relate $foldl1 join$ directly to Lemma 1 or the definition of $minimum$.
 
-* Proving explicitly that join is only applied to local minimum pairs.
+  * Proving explicitly that join is only applied to _local minimum pairs_.
 
 ## Proving explicitly that join is only applied to local minimum pairs.
-So far we have always assumed that join is only applied to local minimum pairs.
-Except for the joins used in $foldl1\;join$, we have shown that they are always
-lmps. Relying on the fact that in every case a $join$ is used, 
-it should be clear which of the lmps constructors apply.
+So far we have always assumed that join is only applied to _local minimum pairs_. Except for the
+joins used in $foldl1\;join$, we have shown that they are always LMPs. Relying on the fact that in
+every case a $join$ is used, it should be clear which of the LMP constructors (cases) apply.
 
-To be more correct we could have made this explicit by changing the 
-definition of $join$ in such a way that it only works on pairs of which
-a proof that they are a local minimum pair can be given. However, two trees
-are only a local minimum pair in respect to their context, meaning that we
-have to change $join$ not only to receive two trees as input but also the list
-in which the two trees are a member.
+To be more correct we could have made this explicit by changing the definition of $join$ in such a
+way that it only works on pairs of which a proof that they are an LMP can be given. However, two
+trees are only a local minimum pair in respect to their context, meaning that we have to change
+$join$ not only to receive two trees as input but also the list in which the two trees are a member.
 
-Not only will this definitions make all the other definitions (and proofs) much
-more cluttered, we can also fool this definition by always giving it the list
-with only the two elements of the pair and using the $s\_inc\_two$ constructor
-to make the proof that they are a local minimum pair (for the list in which
-only they are present).
+Not only will this definition make all other definitions (and proofs) much more cluttered, but we
+can also fool this definition by always giving it the list with only the two elements of the pair
+and using the $s\_inc\_two$ constructor to build the proof that they are a local minimum pair (for
+the list in which only they are present).
 
